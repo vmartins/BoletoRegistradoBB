@@ -19,4 +19,9 @@ $boleto->setIdConv('987654')
        ->setUf('RJ')
        ->setCep('20300400')
        ->gerar();
+
+$erros = $boleto->getErros();
+if (!empty($erros)) {
+    var_dump($erros);
+}
 ```

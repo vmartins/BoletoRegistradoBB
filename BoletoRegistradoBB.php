@@ -248,6 +248,21 @@ class BoletoRegistradoBB
     protected $msgLoja;
 
 
+    /**
+     * Erros ocorridos ao enviar o formulário.
+     *
+     * @var array
+     */
+    protected $erros;
+
+
+    /**
+     * Tipo de envio utilizado na submissão do formulário de pagamento.
+     *
+     * @var string
+     */
+    protected $tipoEnvio = 'curl';
+
 
     /**
      * Obtém idConv
@@ -807,6 +822,7 @@ class BoletoRegistradoBB
         return $this->msgLoja;
     }
 
+
     /**
      * Define msgLoja
      *
@@ -816,6 +832,72 @@ class BoletoRegistradoBB
     public function setMsgLoja($msgLoja)
     {
         $this->msgLoja = $msgLoja;
+        return $this;
+    }
+
+
+    /**
+     * Obtém os erros.
+     *
+     * @return array
+     */
+    public function getErros()
+    {
+        return $this->erros;
+    }
+
+
+    /**
+     * Define os erros.
+     *
+     * @param array $erros
+     * @return BoletoRegistradoBB
+     */
+    protected function setErros($erros)
+    {
+        $this->erros = $erros;
+        return $this;
+    }
+
+
+    /**
+     * Acrecenta um erro aos erros.
+     *
+     * @param string $erro
+     * @return BoletoRegistradoBB
+     */
+    protected function appendErro($erro)
+    {
+        $this->erros[] = $erro;
+        return $this;
+    }
+
+
+    /**
+     * Obtém o tipo de envio do formulário.
+     *
+     * @return string
+     */
+    public function getTipoEnvio()
+    {
+        return $this->tipoEnvio;
+    }
+
+
+    /**
+     * Define o tipo de envio utilizado para submter
+     * o formulário de pagamento.
+     *
+     * @param string $tipoEnvio
+     * @return BoletoRegistradoBB
+     */
+    public function setTipoEnvio($tipoEnvio)
+    {
+        $tipoEnvio = strtolower($tipoEnvio);
+        if (in_array($tipoEnvio, array('html', 'curl'))) {
+            $this->tipoEnvio = $tipoEnvio;
+        }
+
         return $this;
     }
 
@@ -847,6 +929,10 @@ class BoletoRegistradoBB
     }
 
 
+    /**
+     * Gera o Boleto Registrado.
+     *
+     */
     public function gerar()
     {
         $url = 'https://mpag.bb.com.br/site/mpag/';
@@ -872,16 +958,22 @@ class BoletoRegistradoBB
             'msgLoja'               => $this->getMsgLoja()
         );
 
-        $this->enviarFormulario($url, $parametros);
+        if ($this->getTipoEnvio() == 'html') {
+            $this->enviarFormularioViaHtml($url, $parametros);
+        }
+        else {
+            $this->enviarFormularioViaCurl($url, $parametros);
+        }
     }
 
 
     /**
-     * Monta e submete o Formulário de Pagamento do Banco do Brasil.
+     * Monta e submete o Formulário de Pagamento do Banco do Brasil
+     * (via HTML).
      *
      * @param array $parametros
      */
-    function enviarFormulario($url, array $parametros)
+    protected function enviarFormularioViaHtml($url, array $parametros)
     {
         $inputs = '';
         foreach ($parametros as $nome => $valor) {
@@ -895,6 +987,68 @@ class BoletoRegistradoBB
 <form name="redirecionar_via_post" method="post" action="$url">$inputs <input type="submit" onClick="gerar()" value="Clique aqui para gerar o boleto" id="redirecionar" /></form></h1></div></body></html>
 END;
         exit;
+    }
+
+
+    /**
+     * Monta e submete o Formulário de Pagamento do Banco do Brasil
+     * (via curl).
+     *
+     * @param array $parametros
+     * @return void|bool
+     */
+    protected function enviarFormularioViaCurl($url, array $parametros)
+    {
+        if (!extension_loaded('curl')) {
+            $this->appendErro('Biblioteca curl não instalada!');
+            return false;
+        }
+
+        $ch = curl_init();
+        $campos = '';
+        foreach($parametros as $valor => $valor) {
+            $campos .= $valor . "=" . utf8_decode($valor) . "&";
+        }
+
+        curl_setopt($ch, CURLOPT_URL,               $url);
+        curl_setopt($ch, CURLOPT_POST,              1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS,        $campos);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER,    true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT,    3);
+        curl_setopt($ch, CURLOPT_TIMEOUT,           20);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST,    0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER,    0);
+        curl_setopt($ch, CURLOPT_HTTPHEADER,        array('Content-Type: application/x-www-form-urlencoded'));
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION,    1);
+        curl_setopt($ch, CURLOPT_USERAGENT,         $_SERVER['HTTP_USER_AGENT']);
+
+        $resposta = curl_exec($ch);
+        $tipo_conteudo = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $tamanho_conteudo = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+        curl_close ($ch);
+
+        if ($tipo_conteudo == 'application/pdf') {
+            //@TODO: salva o PDF em um diretório
+            //$fp = fopen("/tmp/{$parametros['refTran']}.pdf", 'w');
+            //fwrite($fp, $response);
+            //fclose($fp);
+
+            header('Content-type: application/pdf');
+            header('Content-Disposition: inline; filename="boleto.pdf"');
+            header('Content-Transfer-Encoding: binary');
+            header('Content-Length: ' . $tamanho_conteudo);
+            header('Accept-Ranges: bytes');
+            exit($resposta);
+        }
+        else {
+            preg_match_all("#<\s*?li\b[^>]*>(.*?)</li\b[^>]*>#s", utf8_encode($resposta), $matches);
+            if (isset($matches[1]) && !empty($matches[1])) {
+                $erros = array_map('strip_tags', $matches[1]);
+                $this->setErros($erros);
+            }
+
+            return false;
+        }
     }
 
 }
