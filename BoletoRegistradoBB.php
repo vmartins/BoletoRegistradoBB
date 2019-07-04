@@ -1,5 +1,7 @@
 <?php
 
+namespace Vmartins;
+    
 /**
  * Class BoletoRegistradoBB
  *
