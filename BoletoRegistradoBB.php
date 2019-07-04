@@ -797,6 +797,17 @@ class BoletoRegistradoBB
      */
     public function getCep()
     {
+        return preg_replace('/[^0-9]/', '', $this->cep);
+    }
+    
+    
+    /**
+     * Obtém cep original
+     *
+     * @return string
+     */
+    public function getCepOriginal()
+    {
         return $this->cep;
     }
 
@@ -1043,7 +1054,7 @@ END;
             exit($resposta);
         }
         else {
-            preg_match_all("#<\s*?li\b[^>]*>(.*?)</li\b[^>]*>#s", utf8_encode($resposta), $matches);
+            preg_match_all("#<\s*?li\b[^>]*>(.*?)</li\b[^>]*>#s", $resposta, $matches);
             if (isset($matches[1]) && !empty($matches[1])) {
                 $erros = array_map('strip_tags', $matches[1]);
                 $this->setErros($erros);
