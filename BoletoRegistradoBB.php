@@ -1019,8 +1019,8 @@ END;
 
         $ch = curl_init();
         $campos = '';
-        foreach($parametros as $valor => $valor) {
-            $campos .= $valor . "=" . utf8_decode($valor) . "&";
+        foreach($parametros as $nome => $valor) {
+            $campos .= $nome . "=" . utf8_decode($valor) . "&";
         }
 
         curl_setopt($ch, CURLOPT_URL,               $url);
