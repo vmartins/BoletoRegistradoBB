@@ -260,10 +260,37 @@ class BoletoRegistradoBB
 
     /**
      * Tipo de envio utilizado na submissão do formulário de pagamento.
+     *  - auto: escolha automática
+     *  - html: via formulário HTML
+     *  - curl: via requisição por cURL
      *
      * @var string
      */
-    protected $tipoEnvio = 'curl';
+    protected $tipoEnvio = 'auto';
+
+
+    /**
+     * URL de submissão do formulário do Banco do Brasil.
+     *
+     * @var string
+     */
+    protected $url = 'https://mpag.bb.com.br/site/mpag/';
+
+
+    /**
+     * Parâmetros de submissão do formulário do Banco do Brasil.
+     *
+     * @var array
+     */
+    protected $parametros = array();
+
+
+    /**
+     * Resultado da sumissão (disponível apenas para o tipo de envio por cURL).
+     *
+     * @var array
+     */
+    protected $resultado = array();
 
 
     /**
@@ -861,6 +888,18 @@ class BoletoRegistradoBB
 
 
     /**
+     * Verifica se existem erros.
+     *
+     * @return array
+     */
+    public function hasErros()
+    {
+        $erros = $this->getErros();
+        return !empty($erros);
+    }
+
+
+    /**
      * Define os erros.
      *
      * @param array $erros
@@ -907,10 +946,82 @@ class BoletoRegistradoBB
     public function setTipoEnvio($tipoEnvio)
     {
         $tipoEnvio = strtolower($tipoEnvio);
-        if (in_array($tipoEnvio, array('html', 'curl'))) {
+        if (in_array($tipoEnvio, array('auto', 'html', 'curl'))) {
             $this->tipoEnvio = $tipoEnvio;
         }
 
+        return $this;
+    }
+
+
+    /**
+     * Obtém a URL de submissão.
+     *
+     * @return string
+     */
+    public function getUrl()
+    {
+        return $this->url;
+    }
+
+
+    /**
+     * Define a URL de submissão.
+     *
+     * @param string $url
+     * @return BoletoRegistradoBB
+     */
+    public function setUrl($url)
+    {
+        $this->url = $url;
+        return $this;
+    }
+
+
+    /**
+     * Obtém os parâmetros de submissão.
+     *
+     * @return array
+     */
+    public function getParametros()
+    {
+        return $this->parametros;
+    }
+
+
+    /**
+     * Define os parâmetros de submissão.
+     *
+     * @param array $parametros
+     * @return BoletoRegistradoBB
+     */
+    public function setParametros($parametros)
+    {
+        $this->parametros = $parametros;
+        return $this;
+    }
+
+
+    /**
+     * Obtém o resultado da submissão via cURL.
+     *
+     * @return array
+     */
+    public function getResultado()
+    {
+        return $this->resultado;
+    }
+
+
+    /**
+     * Define o resutado da submissão via cURL.
+     *
+     * @param array $resultado
+     * @return BoletoRegistradoBB
+     */
+    public function setResultado($resultado)
+    {
+        $this->resultado = $resultado;
         return $this;
     }
 
@@ -945,11 +1056,11 @@ class BoletoRegistradoBB
     /**
      * Gera o Boleto Registrado.
      *
+     * @param bool $exibir Via cURL, indica se irá exibir ou não o resultado
      */
-    public function gerar()
+    public function gerar($exibir=false)
     {
-        $url = 'https://mpag.bb.com.br/site/mpag/';
-        $parametros = array(
+        $this->setParametros(array(
             'idConv'                => $this->getIdConv(),
             'refTran'               => $this->getRefTran(),
             'valor'                 => $this->getValor(),
@@ -969,13 +1080,18 @@ class BoletoRegistradoBB
             'uf'                    => $this->getUf(),
             'cep'                   => $this->getCep(),
             'msgLoja'               => $this->getMsgLoja()
-        );
+        ));
 
         if ($this->getTipoEnvio() == 'html') {
-            $this->enviarFormularioViaHtml($url, $parametros);
-        }
-        else {
-            $this->enviarFormularioViaCurl($url, $parametros);
+            return $this->enviarFormularioViaHtml();
+        } else if ($this->getTipoEnvio() == 'curl') {
+            return $this->enviarFormularioViaCurl($exibir);
+        } else { //auto
+            if (extension_loaded('curl')) {
+                return $this->enviarFormularioViaCurl($exibir);
+            } else {
+                return $this->enviarFormularioViaHtml();
+            }
         }
     }
 
@@ -984,10 +1100,13 @@ class BoletoRegistradoBB
      * Monta e submete o Formulário de Pagamento do Banco do Brasil
      * (via HTML).
      *
-     * @param array $parametros
+     * return void
      */
-    protected function enviarFormularioViaHtml($url, array $parametros)
+    protected function enviarFormularioViaHtml()
     {
+        $url = $this->getUrl();
+        $parametros = $this->getParametros();
+
         $inputs = '';
         foreach ($parametros as $nome => $valor) {
             $valor = utf8_decode($valor);
@@ -1007,15 +1126,18 @@ END;
      * Monta e submete o Formulário de Pagamento do Banco do Brasil
      * (via curl).
      *
-     * @param array $parametros
-     * @return void|bool
+     * @param bool $exibir Via cURL, indica se irá exibir ou retornar o resultado
+     * @return void|bool|array
      */
-    protected function enviarFormularioViaCurl($url, array $parametros)
+    protected function enviarFormularioViaCurl($exibir=false)
     {
         if (!extension_loaded('curl')) {
             $this->appendErro('Biblioteca curl não instalada!');
             return false;
         }
+
+        $url = $this->getUrl();
+        $parametros = $this->getParametros();
 
         $ch = curl_init();
         $campos = '';
@@ -1036,31 +1158,33 @@ END;
         curl_setopt($ch, CURLOPT_USERAGENT,         $_SERVER['HTTP_USER_AGENT']);
 
         $resposta = curl_exec($ch);
-        $tipo_conteudo = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-        $tamanho_conteudo = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+        $info = curl_getinfo($ch);
         curl_close ($ch);
 
-        if ($tipo_conteudo == 'application/pdf') {
-            //@TODO: salva o PDF em um diretório
-            //$fp = fopen("/tmp/{$parametros['refTran']}.pdf", 'w');
-            //fwrite($fp, $response);
-            //fclose($fp);
-
-            header('Content-type: application/pdf');
-            header('Content-Disposition: inline; filename="boleto.pdf"');
-            header('Content-Transfer-Encoding: binary');
-            header('Content-Length: ' . $tamanho_conteudo);
-            header('Accept-Ranges: bytes');
-            exit($resposta);
-        }
-        else {
+        if ($info['content_type'] != 'application/pdf') {
             preg_match_all("#<\s*?li\b[^>]*>(.*?)</li\b[^>]*>#s", $resposta, $matches);
             if (isset($matches[1]) && !empty($matches[1])) {
                 $erros = array_map('strip_tags', $matches[1]);
                 $this->setErros($erros);
             }
+        }
 
-            return false;
+        if ($exibir) {
+            if ($info['content_type'] == 'application/pdf') {
+                header('Content-type: application/pdf');
+                header('Content-Disposition: inline; filename="boleto.pdf"');
+                header('Content-Transfer-Encoding: binary');
+                header('Content-Length: ' . $info['download_content_length']);
+                header('Accept-Ranges: bytes');
+                exit($resposta);
+            } else {
+                header('Content-type: ' . $info['content_type']);
+                header('Content-Length: ' . $info['download_content_length']);
+                exit($resposta);
+            }
+        } else {
+            $info['content'] = $resposta;
+            $this->setResultado($info);
         }
     }
 
