@@ -10,14 +10,12 @@ namespace Vmartins;
  */
 class BoletoRegistradoBB
 {
-
     /**
-     * Código do convênio de Comércio Eletrônico fornecido pelo Banco.
+     * Código do convênio de Comércio Eletrônicofornecido pelo Banco.
      *
      * @var int
      */
     protected $idConv;
-
 
     /**
      * Número atribuído, gerado e controlado pelo Convenente, que identifica
@@ -43,7 +41,6 @@ class BoletoRegistradoBB
      */
     protected $refTran;
     
-    
     /**
      * Valor total da compra em Reais, com centavos, sem formatação.
      *   Exemplo: para R$ 195,72 informe 1957
@@ -51,7 +48,6 @@ class BoletoRegistradoBB
      * @var int
      */
     protected $valor;
-    
     
     /**
      * Variável exclusiva para o Programa de Relacionamento do BB.
@@ -61,7 +57,6 @@ class BoletoRegistradoBB
      */
     protected $qtdPontos;
 
-
     /**
      * Data de vencimento do pagamento, no formato DDMMAAAA.
      * OBS: Aceita data futura somente para emissão de Boleto Bancário.
@@ -69,7 +64,6 @@ class BoletoRegistradoBB
      * @var string
      */
     protected $dtVenc;
-
 
     /**
      * Conforme a modalidade de pagamento:
@@ -84,7 +78,6 @@ class BoletoRegistradoBB
      */
     protected $tpPagamento = 21;
 
-
     /**
      * É o número do CPF ou CNPJ do comprador.
      * Não deve ser informado com máscara (sinais de "." e/ou "-").
@@ -93,7 +86,6 @@ class BoletoRegistradoBB
      * @var int
      */
     protected $cpfCnpj;
-
 
     /**
      * Indica que o nº enviado na variável cpf/Cnpj é de
@@ -104,7 +96,6 @@ class BoletoRegistradoBB
      */
     protected $indicadorPessoa;
 
-
     /**
      * Valor do desconto em Reais, com centavos, sem formatação.
      * Exemplo: para R$ 45,26 informe 4526 
@@ -113,7 +104,6 @@ class BoletoRegistradoBB
      * @var int
      */
     protected $valorDesconto;
-    
     
     /**
      * Data de vencimento do pagamento, no formato DDMMAAAA.
@@ -126,7 +116,6 @@ class BoletoRegistradoBB
      */
     protected $dataLimiteDesconto;
 
-
     /**
      * Informa o tipo de título que originará o boleto:
      *   DM – Duplicata Mercantil – utilizado quando forem vendidas mercadorias/produtos;
@@ -136,7 +125,6 @@ class BoletoRegistradoBB
      * @var string
      */
     protected $tpDuplicata = 'DM';
-
 
     /**
      * Complemento de endereço (URL) que será acionado, indicando que uma
@@ -157,7 +145,6 @@ class BoletoRegistradoBB
      */
     protected $urlRetorno = '/';
 
-
     /**
      * Endereço (URL) para o qual o cliente será direcionado, através do formulário
      * Retorno, caso deseje voltar identificado ao site do convenente, a partir da
@@ -177,7 +164,6 @@ class BoletoRegistradoBB
      */
     protected $urlInforma = '/';
 
-
     /**
      * Nome do comprador, que será apresentado no boleto de cobrança.
      * São aceitos como caracteres válidos:
@@ -191,7 +177,6 @@ class BoletoRegistradoBB
      * @var string
      */
     protected $nome;
-
 
     /**
      * Endereço do comprador, que será apresentado no boleto de cobrança.
@@ -207,7 +192,6 @@ class BoletoRegistradoBB
      */
     protected $endereco;
 
-
     /**
      * Cidade do comprador, que será apresentada no boleto de cobrança.
      * São aceitos como caracteres válidos:
@@ -222,7 +206,6 @@ class BoletoRegistradoBB
      */
     protected $cidade;
 
-
     /**
      * Estado do comprador, que será apresentado no boleto de cobrança.
      * Deve ser a UF correspondente ao Cep informado.
@@ -230,7 +213,6 @@ class BoletoRegistradoBB
      * @var string
      */
     protected $uf;
-
 
     /**
      * CEP do comprador, sem hífen, que será apresentado no boleto de cobrança.
@@ -241,7 +223,6 @@ class BoletoRegistradoBB
      */
     protected $cep;
 
-
     /**
      * Instruções do cedente, que serão apresentadas no boleto de cobrança.
      *
@@ -249,14 +230,12 @@ class BoletoRegistradoBB
      */
     protected $msgLoja;
 
-
     /**
      * Erros ocorridos ao enviar o formulário.
      *
      * @var array
      */
     protected $erros;
-
 
     /**
      * Tipo de envio utilizado na submissão do formulário de pagamento.
@@ -268,14 +247,12 @@ class BoletoRegistradoBB
      */
     protected $tipoEnvio = 'auto';
 
-
     /**
      * URL de submissão do formulário do Banco do Brasil.
      *
      * @var string
      */
     protected $url = 'https://mpag.bb.com.br/site/mpag/';
-
 
     /**
      * Parâmetros de submissão do formulário do Banco do Brasil.
@@ -284,7 +261,6 @@ class BoletoRegistradoBB
      */
     protected $parametros = array();
 
-
     /**
      * Resultado da sumissão (disponível apenas para o tipo de envio por cURL).
      *
@@ -292,9 +268,8 @@ class BoletoRegistradoBB
      */
     protected $resultado = array();
 
-
     /**
-     * Obtém idConv
+     * Obtém o código do convênio.
      *
      * @return int
      */
@@ -303,9 +278,8 @@ class BoletoRegistradoBB
         return $this->idConv;
     }
 
-
     /**
-     * Define idConv
+     * Define o código do convênio.
      *
      * @param int $idConv
      * @return BoletoRegistradoBB
@@ -316,20 +290,18 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém refTran.
+     * Obtém a referência da transação.
      *
-     * @return int
+     * @return string
      */
     public function getRefTran()
     {
         return str_pad($this->refTran, 17, "0", STR_PAD_LEFT);
     }
 
-
     /**
-     * Obtém refTran original.
+     * Obtém a referência da transação original.
      *
      * @return int
      */
@@ -338,9 +310,8 @@ class BoletoRegistradoBB
         return $this->refTran;
     }
 
-
     /**
-     * Define refTran
+     * Define a referência da transação.
      *
      * @param int $refTran
      * @return BoletoRegistradoBB
@@ -351,13 +322,13 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Gera refTran
+     * Gera a referência da transação, utilizando o
+     * "nosso número" e o número da carteira de cobrança.
      *
      * @param int $nossoNumero
      * @param int $carteiraCobranca
-     * @return BoletoRegistradoBB
+     * @return string
      */
     public function gerarRefTran($nossoNumero, $carteiraCobranca=null)
     {
@@ -369,20 +340,18 @@ class BoletoRegistradoBB
         }
     }
 
-
     /**
-     * Obtém valor
+     * Obtém o valor.
      *
-     * @return int
+     * @return string
      */
     public function getValor()
     {
         return str_replace(',', '', $this->valor);
     }
 
-
     /**
-     * Obtém valor original
+     * Obtém o valor original.
      *
      * @return int
      */
@@ -391,9 +360,8 @@ class BoletoRegistradoBB
         return $this->valor;
     }
 
-
     /**
-     * Define valor
+     * Define o valor.
      *
      * @param int $valor
      * @return BoletoRegistradoBB
@@ -404,9 +372,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém qtdPontos
+     * Obtém a quantidade de pontos.
      *
      * @return int
      */
@@ -415,9 +382,8 @@ class BoletoRegistradoBB
         return $this->qtdPontos;
     }
 
-
     /**
-     * Define qtdPontos
+     * Define a quantidade de pontos.
      *
      * @param int $qtdPontos
      * @return BoletoRegistradoBB
@@ -428,9 +394,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém dtVenc
+     * Obtém a data de vencimento.
      *
      * @return string
      */
@@ -439,9 +404,8 @@ class BoletoRegistradoBB
         return str_replace('/', '', $this->dtVenc);
     }
 
-
     /**
-     * Obtém dtVenc original
+     * Obtém a data de vencimento original.
      *
      * @return string
      */
@@ -450,9 +414,8 @@ class BoletoRegistradoBB
         return $this->dtVenc;
     }
 
-
     /**
-     * Define dtVenc
+     * Define a data de vencimento.
      *
      * @param string $dtVenc
      * @return BoletoRegistradoBB
@@ -463,9 +426,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém tpPagamento.
+     * Obtém o tipo de pagamento.
      *
      * @return int
      */
@@ -474,12 +436,11 @@ class BoletoRegistradoBB
         return $this->tpPagamento;
     }
 
-
     /**
-     * Define tpPagamento
+     * Define o tipo de pagamento.
      *
      * @param $tpPagamento
-     * @return $this
+     * @return BoletoRegistradoBB
      */
     public function setTpPagamento($tpPagamento)
     {
@@ -487,33 +448,30 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém cpfCnpj
+     * Obtém o CPF ou CNPJ.
      *
-     * @return int
+     * @return string
      */
     public function getCpfCnpj()
     {
         return preg_replace('/[^0-9]/', '', $this->cpfCnpj);
     }
 
-
     /**
-     * Obtém cpfCnpj original
+     * Obtém o CPF ou CNPJ original.
      *
-     * @return int
+     * @return string
      */
     public function getCpfCnpjOriginal()
     {
         return $this->cpfCnpj;
     }
 
-
     /**
-     * Define cpfCnpj
+     * Define o CPF/CNPJ.
      *
-     * @param int $cpfCnpj
+     * @param string $cpfCnpj
      * @return BoletoRegistradoBB
      */
     public function setCpfCnpj($cpfCnpj)
@@ -522,9 +480,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém indicadorPessoa
+     * Obtém o indicador da pessoa.
      *
      * @return int
      */
@@ -533,7 +490,7 @@ class BoletoRegistradoBB
         $indicadorPessoa = $this->indicadorPessoa;
 
         if ($indicadorPessoa) {
-            return $indicadorPessoa;
+            return (int) $indicadorPessoa;
         } else {
             $cpfCnpj = $this->getCpfCnpj();
             if (strlen($cpfCnpj) == 14) {
@@ -544,9 +501,8 @@ class BoletoRegistradoBB
         }
     }
 
-
     /**
-     * Define indicadorPessoa
+     * Define o indicador da pessoa.
      *
      * @param int $indicadorPessoa
      * @return BoletoRegistradoBB
@@ -557,20 +513,18 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém valorDesconto
+     * Obtém o valor de desconto.
      *
-     * @return int
+     * @return string
      */
     public function getValorDesconto()
     {
         return str_replace(',', '', $this->valorDesconto);
     }
 
-
     /**
-     * Obtém valorDesconto original
+     * Obtém o valor de desconto original.
      *
      * @return int
      */
@@ -579,9 +533,8 @@ class BoletoRegistradoBB
         return $this->valorDesconto;
     }
 
-
     /**
-     * Define valorDesconto
+     * Define o valor de desconto.
      *
      * @param int $valorDesconto
      * @return BoletoRegistradoBB
@@ -592,20 +545,18 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém dataLimiteDesconto
+     * Obtém a data limite de desconto.
      *
-     * @return int
+     * @return string
      */
     public function getDataLimiteDesconto()
     {
         return str_replace('/', '', $this->dataLimiteDesconto);
     }
 
-
     /**
-     * Obtém dataLimiteDesconto original
+     * Obtém a data limite de desconto original.
      *
      * @return int
      */
@@ -614,9 +565,8 @@ class BoletoRegistradoBB
         return $this->dataLimiteDesconto;
     }
 
-
     /**
-     * Define dataLimiteDesconto
+     * Define a data limite de desconto.
      *
      * @param int $dataLimiteDesconto
      * @return BoletoRegistradoBB
@@ -627,9 +577,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém tpDuplicata
+     * Obtém o tipo de duplicata.
      *
      * @return string
      */
@@ -638,9 +587,8 @@ class BoletoRegistradoBB
         return $this->tpDuplicata;
     }
 
-
     /**
-     * Define tpDuplicata
+     * Define o tipo de duplicata.
      *
      * @param $tpDuplicata
      * @return $this
@@ -651,9 +599,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém urlRetorno
+     * Obtém a URL de retorno.
      *
      * @return string
      */
@@ -662,9 +609,8 @@ class BoletoRegistradoBB
         return $this->urlRetorno;
     }
 
-
     /**
-     * Define urlRetorno
+     * Define a URL de retorno.
      *
      * @param string $urlRetorno
      * @return BoletoRegistradoBB
@@ -675,9 +621,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém urlInforma
+     * Obtém a URL informa.
      *
      * @return string
      */
@@ -686,9 +631,8 @@ class BoletoRegistradoBB
         return $this->urlInforma;
     }
 
-
     /**
-     * Define urlInforma
+     * Define a URL informa.
      *
      * @param string $urlInforma
      * @return BoletoRegistradoBB
@@ -699,9 +643,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém nome
+     * Obtém o nome.
      *
      * @return string
      */
@@ -709,7 +652,6 @@ class BoletoRegistradoBB
     {
         return $this->alfa($this->nome);
     }
-
 
     /**
      * Obtém nome original.
@@ -721,9 +663,8 @@ class BoletoRegistradoBB
         return $this->nome;
     }
 
-
     /**
-     * Define nome
+     * Define o nome.
      *
      * @param string $nome
      * @return BoletoRegistradoBB
@@ -734,9 +675,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém endereço
+     * Obtém o endereço.
      *
      * @return string
      */
@@ -744,7 +684,6 @@ class BoletoRegistradoBB
     {
         return $this->alfa($this->endereco);
     }
-
 
     /**
      * Obtém endereço original.
@@ -756,9 +695,8 @@ class BoletoRegistradoBB
         return $this->endereco;
     }
 
-
     /**
-     * Define endereço;
+     * Define o endereço.
      *
      * @param string $endereco
      * @return BoletoRegistradoBB
@@ -769,9 +707,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém cidade.
+     * Obtém a cidade.
      *
      * @return string
      */
@@ -780,9 +717,8 @@ class BoletoRegistradoBB
         return $this->alfa($this->cidade);
     }
 
-
     /**
-     * Obtém cidade original.
+     * Obtém a cidade original.
      *
      * @return string
      */
@@ -792,7 +728,7 @@ class BoletoRegistradoBB
     }
 
     /**
-     * Define cidade
+     * Define a cidade.
      *
      * @param string $cidade
      * @return BoletoRegistradoBB
@@ -803,9 +739,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém uf
+     * Obtém a unidade federativa.
      *
      * @return string
      */
@@ -814,9 +749,8 @@ class BoletoRegistradoBB
         return $this->uf;
     }
 
-
     /**
-     * Define uf
+     * Define a unidade federativa.
      *
      * @param string $uf
      * @return BoletoRegistradoBB
@@ -827,9 +761,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém cep
+     * Obtém o CEP.
      *
      * @return string
      */
@@ -838,9 +771,8 @@ class BoletoRegistradoBB
         return preg_replace('/[^0-9]/', '', $this->cep);
     }
     
-    
     /**
-     * Obtém cep original
+     * Obtém o CEP original.
      *
      * @return string
      */
@@ -849,9 +781,8 @@ class BoletoRegistradoBB
         return $this->cep;
     }
 
-
     /**
-     * Define cep
+     * Define o CEP.
      *
      * @param string $cep
      * @return BoletoRegistradoBB
@@ -862,9 +793,8 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
-     * Obtém msgLoja
+     * Obtém a mensagem da loja.
      *
      * @return string
      */
@@ -873,9 +803,8 @@ class BoletoRegistradoBB
         return $this->msgLoja;
     }
 
-
     /**
-     * Define msgLoja
+     * Define a mensagem da loja.
      *
      * @param string $msgLoja
      * @return BoletoRegistradoBB
@@ -885,7 +814,6 @@ class BoletoRegistradoBB
         $this->msgLoja = $msgLoja;
         return $this;
     }
-
 
     /**
      * Obtém os erros.
@@ -897,18 +825,16 @@ class BoletoRegistradoBB
         return $this->erros;
     }
 
-
     /**
      * Verifica se existem erros.
      *
-     * @return array
+     * @return bool
      */
     public function hasErros()
     {
         $erros = $this->getErros();
         return !empty($erros);
     }
-
 
     /**
      * Define os erros.
@@ -922,7 +848,6 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
      * Acrecenta um erro aos erros.
      *
@@ -935,7 +860,6 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
      * Obtém o tipo de envio do formulário.
      *
@@ -945,7 +869,6 @@ class BoletoRegistradoBB
     {
         return $this->tipoEnvio;
     }
-
 
     /**
      * Define o tipo de envio utilizado para submter
@@ -964,7 +887,6 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
      * Obtém a URL de submissão.
      *
@@ -974,7 +896,6 @@ class BoletoRegistradoBB
     {
         return $this->url;
     }
-
 
     /**
      * Define a URL de submissão.
@@ -988,7 +909,6 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
      * Obtém os parâmetros de submissão.
      *
@@ -998,7 +918,6 @@ class BoletoRegistradoBB
     {
         return $this->parametros;
     }
-
 
     /**
      * Define os parâmetros de submissão.
@@ -1012,7 +931,6 @@ class BoletoRegistradoBB
         return $this;
     }
 
-
     /**
      * Obtém o resultado da submissão via cURL.
      *
@@ -1022,7 +940,6 @@ class BoletoRegistradoBB
     {
         return $this->resultado;
     }
-
 
     /**
      * Define o resutado da submissão via cURL.
@@ -1035,7 +952,6 @@ class BoletoRegistradoBB
         $this->resultado = $resultado;
         return $this;
     }
-
 
     /**
      * Formata uma string do tipo 'Alfa' para o padrão aceito pelo Banco do Brasil.
@@ -1062,7 +978,6 @@ class BoletoRegistradoBB
 
         return $textoFormatado;
     }
-
 
     /**
      * Gera o Boleto Registrado.
@@ -1106,7 +1021,6 @@ class BoletoRegistradoBB
         }
     }
 
-
     /**
      * Monta e submete o Formulário de Pagamento do Banco do Brasil
      * (via HTML).
@@ -1131,7 +1045,6 @@ class BoletoRegistradoBB
 END;
         exit;
     }
-
 
     /**
      * Monta e submete o Formulário de Pagamento do Banco do Brasil
