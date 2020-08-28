@@ -879,8 +879,9 @@ class BoletoRegistradoBB
      */
     public function setTipoEnvio($tipoEnvio)
     {
+        $tipos = ['auto', 'html', 'curl', 'file_get_contents'];
         $tipoEnvio = strtolower($tipoEnvio);
-        if (in_array($tipoEnvio, array('auto', 'html', 'curl'))) {
+        if (in_array($tipoEnvio, $tipos)) {
             $this->tipoEnvio = $tipoEnvio;
         }
 
@@ -950,6 +951,19 @@ class BoletoRegistradoBB
     public function setResultado($resultado)
     {
         $this->resultado = $resultado;
+
+        if (empty($resultado['content'])) {
+            $this->appendErro('Nenhum conteúdo obtido na requisição!');
+        } else {
+            if ($resultado['content_type'] != 'application/pdf') {
+                preg_match_all("#<\s*?li\b[^>]*>(.*?)</li\b[^>]*>#s", $resultado['content'], $matches);
+                if (isset($matches[1]) && !empty($matches[1])) {
+                    $erros = array_map('strip_tags', $matches[1]);
+                    $this->setErros($erros);
+                }
+            }
+        }
+
         return $this;
     }
 
@@ -980,11 +994,11 @@ class BoletoRegistradoBB
     }
 
     /**
-     * Gera o Boleto Registrado.
+     * Processa o Boleto Registrado.
      *
-     * @param bool $exibir Via cURL, indica se irá exibir ou não o resultado
+     * @return BoletoRegistradoBB
      */
-    public function gerar($exibir=false)
+    public function processar()
     {
         $this->setParametros(array(
             'idConv'                => $this->getIdConv(),
@@ -1011,10 +1025,14 @@ class BoletoRegistradoBB
         if ($this->getTipoEnvio() == 'html') {
             return $this->enviarFormularioViaHtml();
         } else if ($this->getTipoEnvio() == 'curl') {
-            return $this->enviarFormularioViaCurl($exibir);
+            return $this->enviarFormularioViaCurl();
+        } else if ($this->getTipoEnvio() == 'file_get_contents') {
+            return $this->enviarFormularioViaFileGetContents();
         } else { //auto
             if (extension_loaded('curl')) {
-                return $this->enviarFormularioViaCurl($exibir);
+                return $this->enviarFormularioViaCurl();
+            } else if (ini_get('allow_url_fopen')) {
+                return $this->enviarFormularioViaFileGetContents();
             } else {
                 return $this->enviarFormularioViaHtml();
             }
@@ -1038,22 +1056,24 @@ class BoletoRegistradoBB
             $inputs .= "<input type='hidden' name='{$nome}' value='{$valor}'>";
         }
 
-        header ('Content-type: text/html; charset=ISO-8859-1');
-        echo <<<END
+        $info = [];
+        $info['content_type'] = 'text/html; charset=ISO-8859-1';
+        $info['content'] = <<<END
 <html xmlns="http://www.w3.org/1999/xhtml"><head><meta charset="utf-8"> <script type="text/javascript">function gerar(){document.forms["redirecionar_via_post"].submit();} setTimeout(function(){document.getElementById('redirecionar').style.display='inline';document.getElementById('gerando').style.display='none';},5000);</script> <style>.centerDiv{position:absolute;top:50%;left:50%;width:520px;margin-left:-260px;height:50px;margin-top:-25px;border-radius:5px;background:#ccc;padding:10px}h1{text-align:center;margin-top:3px}#redirecionar{font-size:1em;margin-top:-5px;display:none}p{text-align:center}#circleG{width:45px;margin:auto}.circleG{background-color:rgb(255,255,255);float:left;height:10px;margin-left:5px;width:10px;animation-name:bounce_circleG;-o-animation-name:bounce_circleG;-ms-animation-name:bounce_circleG;-webkit-animation-name:bounce_circleG;-moz-animation-name:bounce_circleG;animation-duration:2.24s;-o-animation-duration:2.24s;-ms-animation-duration:2.24s;-webkit-animation-duration:2.24s;-moz-animation-duration:2.24s;animation-iteration-count:infinite;-o-animation-iteration-count:infinite;-ms-animation-iteration-count:infinite;-webkit-animation-iteration-count:infinite;-moz-animation-iteration-count:infinite;animation-direction:normal;-o-animation-direction:normal;-ms-animation-direction:normal;-webkit-animation-direction:normal;-moz-animation-direction:normal;border-radius:6px;-o-border-radius:6px;-ms-border-radius:6px;-webkit-border-radius:6px;-moz-border-radius:6px}#circleG_1{animation-delay:0.45s;-o-animation-delay:0.45s;-ms-animation-delay:0.45s;-webkit-animation-delay:0.45s;-moz-animation-delay:0.45s}#circleG_2{animation-delay:1.05s;-o-animation-delay:1.05s;-ms-animation-delay:1.05s;-webkit-animation-delay:1.05s;-moz-animation-delay:1.05s}#circleG_3{animation-delay:1.35s;-o-animation-delay:1.35s;-ms-animation-delay:1.35s;-webkit-animation-delay:1.35s;-moz-animation-delay:1.35s}@keyframes bounce_circleG{0%{}50%{background-color:rgb(0,0,0)}100%{}}@-o-keyframes bounce_circleG{0%{}50%{background-color:rgb(0,0,0)}100%{}}@-ms-keyframes bounce_circleG{0%{}50%{background-color:rgb(0,0,0)}100%{}}@-webkit-keyframes bounce_circleG{0%{}50%{background-color:rgb(0,0,0)}100%{}}@-moz-keyframes bounce_circleG{0%{}50%{background-color:rgb(0,0,0)}100%{}}</style></head><body onload="gerar();"><div id="centerDiv" class="centerDiv"><h1> <span id="gerando"> Gerando boleto<div id="circleG"><div id="circleG_1" class="circleG"></div><div id="circleG_2" class="circleG"></div><div id="circleG_3" class="circleG"></div></div> </span>
 <form name="redirecionar_via_post" method="post" action="$url">$inputs <input type="submit" onClick="gerar()" value="Clique aqui para gerar o boleto" id="redirecionar" /></form></h1></div></body></html>
 END;
-        exit;
+        $this->setResultado($info);
+
+        return $this;
     }
 
     /**
      * Monta e submete o Formulário de Pagamento do Banco do Brasil
      * (via curl).
      *
-     * @param bool $exibir Via cURL, indica se irá exibir ou retornar o resultado
-     * @return void|bool|array
+     * @return BoletoRegistradoBB
      */
-    protected function enviarFormularioViaCurl($exibir=false)
+    protected function enviarFormularioViaCurl()
     {
         if (!extension_loaded('curl')) {
             $this->appendErro('Biblioteca curl não instalada!');
@@ -1083,33 +1103,105 @@ END;
 
         $resposta = curl_exec($ch);
         $info = curl_getinfo($ch);
+        $erro = curl_error($ch);
         curl_close ($ch);
 
-        if ($info['content_type'] != 'application/pdf') {
-            preg_match_all("#<\s*?li\b[^>]*>(.*?)</li\b[^>]*>#s", $resposta, $matches);
-            if (isset($matches[1]) && !empty($matches[1])) {
-                $erros = array_map('strip_tags', $matches[1]);
-                $this->setErros($erros);
-            }
+        if ($erro) {
+            $this->appendErro($erro);
         }
 
-        if ($exibir) {
-            if ($info['content_type'] == 'application/pdf') {
-                header('Content-type: application/pdf');
-                header('Content-Disposition: inline; filename="boleto.pdf"');
-                header('Content-Transfer-Encoding: binary');
-                header('Content-Length: ' . $info['download_content_length']);
-                header('Accept-Ranges: bytes');
-                exit($resposta);
-            } else {
-                header('Content-type: ' . $info['content_type']);
-                header('Content-Length: ' . $info['download_content_length']);
-                exit($resposta);
-            }
-        } else {
-            $info['content'] = $resposta;
-            $this->setResultado($info);
-        }
+        $info['content'] = $resposta;
+        $this->setResultado($info);
+
+        return $this;
     }
 
+    /**
+     * Monta e submete o Formulário de Pagamento do Banco do Brasil
+     * (via file_get_contents).
+     *
+     * @param bool $exibir Via cURL, indica se irá exibir ou retornar o resultado
+     * @return void|bool|array
+     */
+    protected function enviarFormularioViaFileGetContents($exibir=false)
+    {
+        if (!ini_get('allow_url_fopen')) {
+            $this->appendErro('Diretiva allow_url_fopen não habilitada!');
+            return false;
+        }
+
+        $url = $this->getUrl();
+        $parametros = $this->getParametros();
+
+        set_error_handler(function ($severity, $message, $file, $line) {
+            throw new \ErrorException($message, $severity, $severity, $file, $line);
+        });
+
+        try {
+            $resposta = file_get_contents($url, false, stream_context_create([
+                'http' => [
+                    'method' => 'POST',
+                    'timeout' => 20,
+                    'header' => ['Content-Type: application/x-www-form-urlencoded'],
+                    'content' => http_build_query($parametros),
+                    'user_agent' => $_SERVER['HTTP_USER_AGENT'],
+                    'follow_location' => 1,
+                ],
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                ]
+            ]));
+        } catch (\Exception $e) {
+            $this->appendErro($e->getMessage());
+        }
+
+        restore_error_handler();
+
+        $info = array_reduce($http_response_header, function($info, $item) {
+            list($nome, $valor) = explode(':', $item, 2);
+            if ($valor) {
+                $i = mb_strtolower(preg_replace('/(.)(?=[A-Z])/u', '_', preg_replace('/\s+/u', '', ucwords($nome))));
+                $info[$i] = trim($valor);
+            }
+            return $info;
+        }, []);
+
+        $info['content'] = $resposta;
+        $this->setResultado($info);
+
+        return $this;
+    }
+
+    /**
+     * Exibe a resposta da requisição.
+     * 
+     * @return void
+     */
+    public function exibir()
+    {
+        $resultado = $this->getResultado();
+
+        if (array_key_exists('download_content_length', $resultado)) {
+            $tamanho = $resultado['download_content_length'];
+        } else if (array_key_exists('content_length', $resultado)) {
+            $tamanho = $resultado['download_content_length'];
+        } else {
+            $tamanho = 0;
+        }
+
+        ob_clean();
+        header("Content-type: {$resultado['content_type']}");
+        if ($tamanho) {
+            header("Content-Length: {$tamanho}");
+        }
+
+        if ($resultado['content_type'] == 'application/pdf') {
+            header('Content-Disposition: inline; filename="boleto.pdf"');
+            header('Content-Transfer-Encoding: binary');
+            header('Accept-Ranges: bytes');
+        }
+
+        exit($resultado['content']);
+    }
 }
