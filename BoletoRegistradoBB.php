@@ -102,7 +102,7 @@ class BoletoRegistradoBB
      *
      * @var int
      */
-    protected $indicadorPessoa = 1;
+    protected $indicadorPessoa;
 
 
     /**
@@ -530,7 +530,18 @@ class BoletoRegistradoBB
      */
     public function getIndicadorPessoa()
     {
-        return $this->indicadorPessoa;
+        $indicadorPessoa = $this->indicadorPessoa;
+
+        if ($indicadorPessoa) {
+            return $indicadorPessoa;
+        } else {
+            $cpfCnpj = $this->getCpfCnpj();
+            if (strlen($cpfCnpj) == 14) {
+                return 2;
+            } else {
+                return 1; //Padrão=PF
+            }
+        }
     }
 
 
