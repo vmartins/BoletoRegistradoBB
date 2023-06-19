@@ -347,7 +347,11 @@ class BoletoRegistradoBB
      */
     public function getValor()
     {
-        return str_replace(',', '', $this->valor);
+        if ($this->valor) {
+            return str_replace(',', '', $this->valor);
+        }
+
+        return '';
     }
 
     /**
@@ -401,7 +405,11 @@ class BoletoRegistradoBB
      */
     public function getDtVenc()
     {
-        return str_replace('/', '', $this->dtVenc);
+        if ($this->dtVenc) {
+            return str_replace('/', '', $this->dtVenc);
+        }
+
+        return '';
     }
 
     /**
@@ -520,7 +528,11 @@ class BoletoRegistradoBB
      */
     public function getValorDesconto()
     {
-        return str_replace(',', '', $this->valorDesconto);
+        if ($this->valorDesconto) {
+            return str_replace(',', '', $this->valorDesconto);
+        }
+
+        return '';
     }
 
     /**
@@ -552,7 +564,11 @@ class BoletoRegistradoBB
      */
     public function getDataLimiteDesconto()
     {
-        return str_replace('/', '', $this->dataLimiteDesconto);
+        if ($this->dataLimiteDesconto) {
+            return str_replace('/', '', $this->dataLimiteDesconto);
+        }
+
+        return '';
     }
 
     /**
@@ -1053,6 +1069,7 @@ class BoletoRegistradoBB
         $inputs = '';
         foreach ($parametros as $nome => $valor) {
             $valor = utf8_decode($valor);
+
             $inputs .= "<input type='hidden' name='{$nome}' value='{$valor}'>";
         }
 
