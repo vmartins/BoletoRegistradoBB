@@ -1068,7 +1068,9 @@ class BoletoRegistradoBB
 
         $inputs = '';
         foreach ($parametros as $nome => $valor) {
-            $valor = mb_convert_encoding($valor, 'UTF-8');
+            if ($valor) {
+                $valor = mb_convert_encoding($valor, 'UTF-8');
+            }
 
             $inputs .= "<input type='hidden' name='{$nome}' value='{$valor}'>";
         }
@@ -1103,7 +1105,11 @@ END;
         $ch = curl_init();
         $campos = '';
         foreach($parametros as $nome => $valor) {
-            $campos .= $nome . "=" . mb_convert_encoding($valor, 'UTF-8') . "&";
+            if ($valor) {
+                $valor = mb_convert_encoding($valor, 'UTF-8');
+            }
+            
+            $campos .= "{$nome}={$valor}&";
         }
 
         curl_setopt($ch, CURLOPT_URL,               $url);
