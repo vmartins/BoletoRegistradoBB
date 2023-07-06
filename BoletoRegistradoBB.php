@@ -1213,7 +1213,10 @@ END;
             $tamanho = 0;
         }
 
-        ob_clean();
+        if (ob_get_length() > 0) {
+            ob_clean();
+        }
+        
         header("Content-type: {$resultado['content_type']}");
         if ($tamanho) {
             header("Content-Length: {$tamanho}");

@@ -1,7 +1,7 @@
 {
   "name": "vmartins/boletoregistradobb",
   "description": "Biblioteca para gerar boleto registrado do Banco do Brasil",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "license": "MIT",
   "authors": [
     {
